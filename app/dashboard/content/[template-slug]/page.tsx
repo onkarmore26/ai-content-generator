@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useContext, useState } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
@@ -17,15 +18,16 @@ import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
+// Update the PROPS interface to match Next.js dynamic routing and PageProps
 interface PROPS {
   params: {
     "template-slug": string;
   };
 }
 
-function CreateNewContent(props: PROPS) {
+function CreateNewContent({ params }: PROPS) {
   const selectedTemplate: TEMPLATE | undefined = Templates?.find(
-    (item) => item.slug == props.params["template-slug"]
+    (item) => item.slug === params["template-slug"]
   );
 
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,6 @@ function CreateNewContent(props: PROPS) {
   const { userSubscription, setUserSubscription } = useContext(
     UserSubscriptionContext
   );
-
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
@@ -101,7 +102,6 @@ function CreateNewContent(props: PROPS) {
           userFormInput={(v: any) => GenerateAIContent(v)}
           loading={loading}
         />
-
         <div className="col-span-2">
           <OutputSection aiOutput={aiOutput} />
         </div>

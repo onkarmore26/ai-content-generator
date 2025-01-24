@@ -52,9 +52,7 @@ export default function LandingPage() {
           Revolutionize your content creation with our AI-powered app,
           delivering engaging and high-quality text in seconds.
         </p>
-        <Link
-          href={`/auth/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}
-        >
+        <Link href={`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}>
           <button className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg flex items-center">
             Get Started
             <ChevronRight className="ml-2 h-5 w-5" />
