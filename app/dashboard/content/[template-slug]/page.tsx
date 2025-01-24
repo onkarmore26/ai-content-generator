@@ -14,12 +14,12 @@ import { AIOutput } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
-import { useRouter } from "next/navigation"; // Correct import for App Router
+import { useRouter } from "next/router";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
 interface PROPS {
-  params: { "template-slug": string } | Promise<{ "template-slug": string }>;
+  params: Promise<{ "template-slug": string }> | undefined;
 }
 
 function CreateNewContent({ params }: PROPS) {
@@ -34,17 +34,20 @@ function CreateNewContent({ params }: PROPS) {
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
   const { userSubscription } = useContext(UserSubscriptionContext);
-  const { setUpdateCreditUsage } = useContext(UpdateCreditUsageContext);
+  const { updateCreditUsage, setUpdateCreditUsage } = useContext(
+    UpdateCreditUsageContext
+  );
 
   useEffect(() => {
     const fetchTemplate = async () => {
-      const resolvedParams = await params; // Resolve Promise if necessary
-      const template = Templates?.find(
-        (item) => item.slug === resolvedParams["template-slug"]
-      );
-      setSelectedTemplate(template);
+      if (params) {
+        const resolvedParams = await params; // Resolve the Promise
+        const template = Templates?.find(
+          (item) => item.slug === resolvedParams["template-slug"]
+        );
+        setSelectedTemplate(template);
+      }
     };
-
     fetchTemplate();
   }, [params]);
 
@@ -60,10 +63,10 @@ function CreateNewContent({ params }: PROPS) {
 
     try {
       const result = await chatSession.sendMessage(FinalAIPrompt);
-      const aiResponseText = await result?.response.text();
+      const aiResponseText = result?.response.text();
 
-      setAiOutput(aiResponseText || "");
-      await SaveInDb(FormData, selectedTemplate?.slug, aiResponseText || "");
+      setAiOutput(aiResponseText);
+      await SaveInDb(FormData, selectedTemplate?.slug, aiResponseText);
 
       const wordCount = aiResponseText ? aiResponseText.split(" ").length : 0;
       setTotalUsage((prev) => Math.min(10000, prev + wordCount));
@@ -78,14 +81,13 @@ function CreateNewContent({ params }: PROPS) {
 
   const SaveInDb = async (formData: any, slug: any, aiResp: string) => {
     try {
-      const result = await db.insert(AIOutput).values({
-        formData,
+      await db.insert(AIOutput).values({
+        formData: formData,
         templateSlug: slug,
         aiResponse: aiResp,
         createdBy: user?.primaryEmailAddress?.emailAddress,
         createdAt: moment().format("DD/MM/yyyy"),
       });
-      console.log("Data saved successfully:", result);
     } catch (error) {
       console.error("Error saving data to DB:", error);
     }
