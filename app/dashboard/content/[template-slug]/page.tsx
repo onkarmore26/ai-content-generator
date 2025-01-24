@@ -1,6 +1,4 @@
-"use client";
-import React, { useContext, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useContext, useState, useEffect } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
 import { TEMPLATE } from "../../_components/TemplateListSection";
@@ -14,21 +12,18 @@ import { AIOutput } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
+import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
-// No need to define `PROPS` manually, use Next.js dynamic routing types
-type PageProps = {
-  params: {
-    "template-slug": string;
-  };
-};
+interface PROPS {
+  params: { "template-slug": string } | Promise<{ "template-slug": string }>;
+}
 
-const CreateNewContent: React.FC<PageProps> = ({ params }) => {
-  const selectedTemplate: TEMPLATE | undefined = Templates?.find(
-    (item) => item.slug == params["template-slug"]
-  );
-
+function CreateNewContent(props: PROPS) {
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    TEMPLATE | undefined
+  >();
   const [loading, setLoading] = useState(false);
   const [aiOutput, setAiOutput] = useState<string>("");
 
@@ -39,9 +34,23 @@ const CreateNewContent: React.FC<PageProps> = ({ params }) => {
   const { userSubscription, setUserSubscription } = useContext(
     UserSubscriptionContext
   );
+
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
+
+  useEffect(() => {
+    if (props.params) {
+      const fetchTemplate = async () => {
+        const params = await props.params; // resolve the Promise
+        const template = Templates?.find(
+          (item) => item.slug == params["template-slug"]
+        );
+        setSelectedTemplate(template);
+      };
+      fetchTemplate();
+    }
+  }, [props.params]);
 
   const GenerateAIContent = async (FormData: any) => {
     console.log("Current Total Usage: ", totalUsage);
@@ -111,6 +120,6 @@ const CreateNewContent: React.FC<PageProps> = ({ params }) => {
       </div>
     </div>
   );
-};
+}
 
 export default CreateNewContent;
