@@ -44,6 +44,9 @@ function CreateNewContent(props: PROPS) {
   );
 
   const GenerateAIContent = async (FormData: any) => {
+    console.log("Current Total Usage: ", totalUsage);
+
+    // Check if total usage exceeds the limit and if user doesn't have a subscription
     if (totalUsage >= 10000 && !userSubscription) {
       console.log("Please Upgrade");
       router.push("/dashboard/billing");
@@ -62,7 +65,7 @@ function CreateNewContent(props: PROPS) {
       await SaveInDb(FormData, selectedTemplate?.slug, aiResponseText);
 
       const wordCount = aiResponseText ? aiResponseText.split(" ").length : 0;
-      setTotalUsage((prev) => Math.min(10000, prev + wordCount));
+      setTotalUsage((prev) => Math.min(10000, prev + wordCount)); // Ensure usage doesn't exceed limit
     } catch (error) {
       console.error("Error generating AI content:", error);
     } finally {
