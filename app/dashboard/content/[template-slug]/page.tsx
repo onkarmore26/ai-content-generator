@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useContext, useState, useEffect } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
@@ -13,7 +14,7 @@ import { AIOutput } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
-import { useRouter } from "next/router"; // <-- This is changed
+import { useRouter } from "next/navigation"; // Correct import for App Router
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
@@ -21,7 +22,7 @@ interface PROPS {
   params: { "template-slug": string } | Promise<{ "template-slug": string }>;
 }
 
-function CreateNewContent(props: PROPS) {
+function CreateNewContent({ params }: PROPS) {
   const [selectedTemplate, setSelectedTemplate] = useState<
     TEMPLATE | undefined
   >();
@@ -32,33 +33,23 @@ function CreateNewContent(props: PROPS) {
   const router = useRouter();
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
-  const { userSubscription, setUserSubscription } = useContext(
-    UserSubscriptionContext
-  );
-
-  const { updateCreditUsage, setUpdateCreditUsage } = useContext(
-    UpdateCreditUsageContext
-  );
+  const { userSubscription } = useContext(UserSubscriptionContext);
+  const { setUpdateCreditUsage } = useContext(UpdateCreditUsageContext);
 
   useEffect(() => {
-    if (props.params) {
-      const fetchTemplate = async () => {
-        const params = await props.params; // resolve the Promise
-        const template = Templates?.find(
-          (item) => item.slug == params["template-slug"]
-        );
-        setSelectedTemplate(template);
-      };
-      fetchTemplate();
-    }
-  }, [props.params]);
+    const fetchTemplate = async () => {
+      const resolvedParams = await params; // Resolve Promise if necessary
+      const template = Templates?.find(
+        (item) => item.slug === resolvedParams["template-slug"]
+      );
+      setSelectedTemplate(template);
+    };
+
+    fetchTemplate();
+  }, [params]);
 
   const GenerateAIContent = async (FormData: any) => {
-    console.log("Current Total Usage: ", totalUsage);
-
-    // Check if total usage exceeds the limit and if user doesn't have a subscription
     if (totalUsage >= 10000 && !userSubscription) {
-      console.log("Please Upgrade");
       router.push("/dashboard/billing");
       return;
     }
@@ -69,13 +60,13 @@ function CreateNewContent(props: PROPS) {
 
     try {
       const result = await chatSession.sendMessage(FinalAIPrompt);
-      const aiResponseText = result?.response.text();
+      const aiResponseText = await result?.response.text();
 
-      setAiOutput(aiResponseText);
-      await SaveInDb(FormData, selectedTemplate?.slug, aiResponseText);
+      setAiOutput(aiResponseText || "");
+      await SaveInDb(FormData, selectedTemplate?.slug, aiResponseText || "");
 
       const wordCount = aiResponseText ? aiResponseText.split(" ").length : 0;
-      setTotalUsage((prev) => Math.min(10000, prev + wordCount)); // Ensure usage doesn't exceed limit
+      setTotalUsage((prev) => Math.min(10000, prev + wordCount));
     } catch (error) {
       console.error("Error generating AI content:", error);
     } finally {
@@ -88,7 +79,7 @@ function CreateNewContent(props: PROPS) {
   const SaveInDb = async (formData: any, slug: any, aiResp: string) => {
     try {
       const result = await db.insert(AIOutput).values({
-        formData: formData,
+        formData,
         templateSlug: slug,
         aiResponse: aiResp,
         createdBy: user?.primaryEmailAddress?.emailAddress,
