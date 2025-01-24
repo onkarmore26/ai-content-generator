@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import { useSearchParams } from "next/navigation"; // Handle search params
@@ -38,9 +39,9 @@ export default function LandingPage() {
   ];
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center">
+    <main className="min-h-screen flex flex-col items-center justify-between bg-gray-50 text-center">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-32 pb-20">
+      <section className="flex-grow flex flex-col items-center justify-center">
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
           AI Content{" "}
           <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">

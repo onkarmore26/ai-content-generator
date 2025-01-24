@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
 import { TEMPLATE } from "../../_components/TemplateListSection";
@@ -14,18 +13,21 @@ import { AIOutput } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
 interface PROPS {
-  params: Promise<{ "template-slug": string }> | undefined;
+  params: {
+    "template-slug": string;
+  };
 }
 
-function CreateNewContent({ params }: PROPS) {
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    TEMPLATE | undefined
-  >();
+function CreateNewContent(props: PROPS) {
+  const selectedTemplate: TEMPLATE | undefined = Templates?.find(
+    (item) => item.slug == props.params["template-slug"]
+  );
+
   const [loading, setLoading] = useState(false);
   const [aiOutput, setAiOutput] = useState<string>("");
 
@@ -33,26 +35,17 @@ function CreateNewContent({ params }: PROPS) {
   const router = useRouter();
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
-  const { userSubscription } = useContext(UserSubscriptionContext);
+  const { userSubscription, setUserSubscription } = useContext(
+    UserSubscriptionContext
+  );
+
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
 
-  useEffect(() => {
-    const fetchTemplate = async () => {
-      if (params) {
-        const resolvedParams = await params; // Resolve the Promise
-        const template = Templates?.find(
-          (item) => item.slug === resolvedParams["template-slug"]
-        );
-        setSelectedTemplate(template);
-      }
-    };
-    fetchTemplate();
-  }, [params]);
-
   const GenerateAIContent = async (FormData: any) => {
     if (totalUsage >= 10000 && !userSubscription) {
+      console.log("Please Upgrade");
       router.push("/dashboard/billing");
       return;
     }
@@ -81,13 +74,14 @@ function CreateNewContent({ params }: PROPS) {
 
   const SaveInDb = async (formData: any, slug: any, aiResp: string) => {
     try {
-      await db.insert(AIOutput).values({
+      const result = await db.insert(AIOutput).values({
         formData: formData,
         templateSlug: slug,
         aiResponse: aiResp,
         createdBy: user?.primaryEmailAddress?.emailAddress,
         createdAt: moment().format("DD/MM/yyyy"),
       });
+      console.log("Data saved successfully:", result);
     } catch (error) {
       console.error("Error saving data to DB:", error);
     }
