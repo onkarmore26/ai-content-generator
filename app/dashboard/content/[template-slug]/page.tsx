@@ -1,5 +1,6 @@
 "use client";
 import React, { useContext, useState } from "react";
+import { useRouter } from "next/navigation";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
 import { TEMPLATE } from "../../_components/TemplateListSection";
@@ -13,19 +14,19 @@ import { AIOutput } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
-import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
-interface PageProps {
+// No need to define `PROPS` manually, use Next.js dynamic routing types
+type PageProps = {
   params: {
     "template-slug": string;
   };
-}
+};
 
-function CreateNewContent({ params }: PageProps) {
+const CreateNewContent: React.FC<PageProps> = ({ params }) => {
   const selectedTemplate: TEMPLATE | undefined = Templates?.find(
-    (item) => item.slug === params["template-slug"]
+    (item) => item.slug == params["template-slug"]
   );
 
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,6 @@ function CreateNewContent({ params }: PageProps) {
   const { userSubscription, setUserSubscription } = useContext(
     UserSubscriptionContext
   );
-
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
@@ -111,6 +111,6 @@ function CreateNewContent({ params }: PageProps) {
       </div>
     </div>
   );
-}
+};
 
 export default CreateNewContent;
