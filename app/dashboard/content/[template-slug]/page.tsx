@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
 import { TEMPLATE } from "../../_components/TemplateListSection";
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
-// Update the PROPS interface to match Next.js dynamic routing and PageProps
+// Updated PROPS interface to handle async params
 interface PROPS {
   params: {
     "template-slug": string;
@@ -26,16 +26,14 @@ interface PROPS {
 }
 
 function CreateNewContent({ params }: PROPS) {
-  const selectedTemplate: TEMPLATE | undefined = Templates?.find(
-    (item) => item.slug === params["template-slug"]
-  );
-
+  const [resolvedParams, setResolvedParams] = useState<{
+    "template-slug": string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [aiOutput, setAiOutput] = useState<string>("");
 
   const { user } = useUser();
   const router = useRouter();
-
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
   const { userSubscription, setUserSubscription } = useContext(
     UserSubscriptionContext
@@ -43,6 +41,20 @@ function CreateNewContent({ params }: PROPS) {
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
+
+  // Resolve params directly in the page function
+  useEffect(() => {
+    const fetchParams = async () => {
+      // Assuming the params are fetched from the dynamic URL or passed into the component
+      const resolved = await params;
+      setResolvedParams(resolved);
+    };
+    fetchParams();
+  }, [params]);
+
+  const selectedTemplate: TEMPLATE | undefined = resolvedParams
+    ? Templates?.find((item) => item.slug === resolvedParams["template-slug"])
+    : undefined;
 
   const GenerateAIContent = async (FormData: any) => {
     if (totalUsage >= 10000 && !userSubscription) {
@@ -87,6 +99,10 @@ function CreateNewContent({ params }: PROPS) {
       console.error("Error saving data to DB:", error);
     }
   };
+
+  if (!resolvedParams) {
+    return <div>Loading...</div>; // Wait until params are resolved
+  }
 
   return (
     <div className="p-5">
