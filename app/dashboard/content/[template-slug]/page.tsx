@@ -1,3 +1,6 @@
+// Add this at the very top of the file
+"use client";
+
 import React, { useContext, useState } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
@@ -34,7 +37,7 @@ export default async function CreateNewContent({ params }: PROPS) {
   const [aiOutput, setAiOutput] = useState<string>("");
 
   const { user } = useUser();
-  const router = useRouter();
+  const router = useRouter(); // Now this can be used in a client component
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
   const { userSubscription, setUserSubscription } = useContext(
