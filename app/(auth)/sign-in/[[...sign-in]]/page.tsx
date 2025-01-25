@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { SignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -9,14 +8,13 @@ export default function SignInPage() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
 
-  // Provide a fallback value to ensure `redirectUrl` is always a string
   const redirectUrl =
     new URLSearchParams(window.location.search).get("redirect_url") ||
     "/dashboard";
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.push(redirectUrl); // `redirectUrl` is now guaranteed to be a string
+      router.push(redirectUrl);
     }
   }, [isSignedIn, isLoaded, router, redirectUrl]);
 

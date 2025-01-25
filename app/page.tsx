@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import { useSearchParams } from "next/navigation"; // Handle search params
@@ -12,7 +13,7 @@ import {
 
 export default function LandingPage() {
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url") || "/dashboard"; // Fallback to "/dashboard"
+  const redirectUrl = searchParams.get("redirect_url") || "/dashboard"; // Fallback to dashboard
 
   const features = [
     {
