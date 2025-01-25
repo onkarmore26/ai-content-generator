@@ -25,20 +25,24 @@ function UsageTrack() {
   useEffect(() => {
     if (user) {
       calculateWordUsage();
+      checkUserSubscription();
     }
-    user && IsUserSubscribe();
   }, [user]);
 
   useEffect(() => {
-    user && calculateWordUsage();
-  }, [updateCreditUsage && user]);
+    if (user && updateCreditUsage) {
+      calculateWordUsage();
+    }
+  }, [updateCreditUsage, user]);
 
   const calculateWordUsage = async () => {
     try {
       const results: HISTORY[] = await db
         .select()
         .from(AIOutput)
-        .where(eq(AIOutput.createdBy, user?.primaryEmailAddress?.emailAddress));
+        .where(
+          eq(AIOutput.createdBy as any, user?.primaryEmailAddress?.emailAddress)
+        );
 
       const total = results.reduce((sum, item) => {
         const wordCount = item.aiResponse
@@ -53,17 +57,24 @@ function UsageTrack() {
     }
   };
 
-  const IsUserSubscribe = async () => {
-    const result = await db
-      .select()
-      .from(UserSubscription)
-      .where(
-        eq(UserSubscription.email, user?.primaryEmailAddress?.emailAddress)
-      );
+  const checkUserSubscription = async () => {
+    try {
+      const result = await db
+        .select()
+        .from(UserSubscription)
+        .where(
+          eq(UserSubscription.email, user?.primaryEmailAddress?.emailAddress)
+        );
 
-    if (result) {
-      setUserSubscription(true);
-      setMaxWords(100000);
+      if (result && result.length > 0) {
+        setUserSubscription(true);
+        setMaxWords(100000); // Update max words if subscribed
+      } else {
+        setUserSubscription(false);
+        setMaxWords(10000); // Default value for non-subscribed users
+      }
+    } catch (error) {
+      console.error("Error checking subscription:", error);
     }
   };
 
