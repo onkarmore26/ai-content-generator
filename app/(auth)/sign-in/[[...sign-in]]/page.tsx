@@ -3,15 +3,15 @@ import { useEffect } from "react";
 import { SignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useSearchParams } from "next/navigation"; // Import for handling query params
 
 export default function SignInPage() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
 
-  // Use search params hook to retrieve redirect_url from query string
-  const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url") || "/dashboard"; // Fallback to '/dashboard'
+  // Get the redirect URL from query parameters, fallback to '/dashboard' if not present
+  const redirectUrl =
+    new URLSearchParams(window.location.search).get("redirect_url") ||
+    "/dashboard";
 
   useEffect(() => {
     // Redirect if the user is signed in and data is loaded
