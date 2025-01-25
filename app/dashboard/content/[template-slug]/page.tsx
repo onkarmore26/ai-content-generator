@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
-// Update the PROPS interface to match Next.js dynamic routing and PageProps
+// PROPS interface
 interface PROPS {
   params: {
     "template-slug": string;
@@ -37,12 +37,8 @@ function CreateNewContent({ params }: PROPS) {
   const router = useRouter();
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
-  const { userSubscription, setUserSubscription } = useContext(
-    UserSubscriptionContext
-  );
-  const { updateCreditUsage, setUpdateCreditUsage } = useContext(
-    UpdateCreditUsageContext
-  );
+  const { userSubscription } = useContext(UserSubscriptionContext);
+  const { setUpdateCreditUsage } = useContext(UpdateCreditUsageContext);
 
   const GenerateAIContent = async (FormData: any) => {
     if (totalUsage >= 10000 && !userSubscription) {
