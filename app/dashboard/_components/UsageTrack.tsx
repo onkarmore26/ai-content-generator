@@ -1,12 +1,10 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { db } from "@/utils/db";
-import { AIOutput, UserSubscription } from "@/utils/schema";
+import { AIOutput, AIOutputType } from "@/utils/schema"; // Import the correct type
 import { useUser } from "@clerk/nextjs";
 import React, { useContext, useEffect, useState } from "react";
 import { eq } from "drizzle-orm";
-import { HISTORY } from "../history/page";
+import { UserSubscription } from "@/utils/schema";
 import { TotalUsageContext } from "@/app/(context)/TotalUsageContext";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
@@ -18,31 +16,31 @@ function UsageTrack() {
     UserSubscriptionContext
   );
   const [maxWords, setMaxWords] = useState(10000);
-  const { updateCreditUsage, setUpdateCreditUsage } = useContext(
-    UpdateCreditUsageContext
-  );
+  const { updateCreditUsage } = useContext(UpdateCreditUsageContext);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       calculateWordUsage();
-      checkUserSubscription();
+      IsUserSubscribe();
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && updateCreditUsage) {
-      calculateWordUsage();
-    }
-  }, [updateCreditUsage, user]);
+  }, [user, updateCreditUsage]);
 
   const calculateWordUsage = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      console.warn("User email address is not defined.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
     try {
-      const results: HISTORY[] = await db
+      // Corrected query to reference the AIOutput schema and the inferred type
+      const results: AIOutputType[] = await db
         .select()
         .from(AIOutput)
-        .where(
-          eq(AIOutput.createdBy as any, user?.primaryEmailAddress?.emailAddress)
-        );
+        .where(eq(AIOutput.createdBy, user.primaryEmailAddress.emailAddress));
 
       const total = results.reduce((sum, item) => {
         const wordCount = item.aiResponse
@@ -52,26 +50,34 @@ function UsageTrack() {
       }, 0);
 
       setTotalUsage(total);
-    } catch (error) {
-      console.error("Error fetching usage data:", error);
+    } catch (err) {
+      setError("Failed to fetch usage data.");
+      console.error("Error fetching usage data:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const checkUserSubscription = async () => {
+  const IsUserSubscribe = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      console.warn("User email address is not defined.");
+      return;
+    }
+
     try {
       const result = await db
         .select()
         .from(UserSubscription)
         .where(
-          eq(UserSubscription.email, user?.primaryEmailAddress?.emailAddress)
+          eq(UserSubscription.email, user.primaryEmailAddress.emailAddress)
         );
 
-      if (result && result.length > 0) {
+      if (result.length > 0) {
         setUserSubscription(true);
-        setMaxWords(100000); // Update max words if subscribed
+        setMaxWords(100000);
       } else {
         setUserSubscription(false);
-        setMaxWords(10000); // Default value for non-subscribed users
+        setMaxWords(10000);
       }
     } catch (error) {
       console.error("Error checking subscription:", error);
@@ -93,6 +99,8 @@ function UsageTrack() {
         <h2 className="text-sm my-2">
           {totalUsage}/{maxWords} credit used
         </h2>
+        {loading && <p>Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>}
       </div>
       <Button variant="secondary" className="w-full my-3 text-primary">
         Upgrade

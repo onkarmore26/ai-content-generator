@@ -1,5 +1,5 @@
-import { boolean, serial, text, varchar } from "drizzle-orm/pg-core";
-import { pgTable } from "drizzle-orm/pg-core";
+import { InferModel } from "drizzle-orm";
+import { pgTable, serial, varchar, text, boolean } from "drizzle-orm/pg-core";
 
 export const AIOutput = pgTable("aiOutput", {
   id: serial("id").primaryKey(),
@@ -18,3 +18,6 @@ export const UserSubscription = pgTable("userSubscription", {
   paymentId: varchar("paymentId"),
   joinDate: varchar("joinDate"),
 });
+
+// Infer the type of AIOutput table
+export type AIOutputType = InferModel<typeof AIOutput>;

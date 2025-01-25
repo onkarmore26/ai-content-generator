@@ -1,6 +1,6 @@
 "use client";
-
-import { useSearchParams } from "next/navigation"; // Handle search params
+import React, { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -10,9 +10,9 @@ import {
   MessagesSquare,
 } from "lucide-react";
 
-export default function LandingPage() {
+function LandingPageContent() {
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url") || "/dashboard"; // Fallback to dashboard
+  const redirectUrl = searchParams?.get("redirect_url") || "/dashboard"; // Fallback to dashboard
 
   const features = [
     {
@@ -75,5 +75,13 @@ export default function LandingPage() {
         ))}
       </section>
     </main>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LandingPageContent />
+    </Suspense>
   );
 }

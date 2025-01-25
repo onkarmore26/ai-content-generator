@@ -1,7 +1,6 @@
-// Add this at the very top of the file
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import FormSection from "../_components/FormSection";
 import OutputSection from "../_components/OutputSection";
 import { TEMPLATE } from "../../_components/TemplateListSection";
@@ -19,25 +18,22 @@ import { useRouter } from "next/navigation";
 import { UserSubscriptionContext } from "@/app/(context)/UserSubscriptionContext";
 import { UpdateCreditUsageContext } from "@/app/(context)/UpdateCreditUsageContext";
 
+// Adjusted PROPS type to handle params as a Promise
 interface PROPS {
   params: Promise<{
     "template-slug": string;
   }>;
 }
 
-export default async function CreateNewContent({ params }: PROPS) {
-  // Await the Promise for params
-  const resolvedParams = await params;
-
-  const selectedTemplate: TEMPLATE | undefined = Templates?.find(
-    (item) => item.slug === resolvedParams["template-slug"]
-  );
-
+export default function CreateNewContent({ params }: PROPS) {
   const [loading, setLoading] = useState(false);
   const [aiOutput, setAiOutput] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    TEMPLATE | undefined
+  >(undefined);
 
   const { user } = useUser();
-  const router = useRouter(); // Now this can be used in a client component
+  const router = useRouter();
 
   const { totalUsage, setTotalUsage } = useContext(TotalUsageContext);
   const { userSubscription, setUserSubscription } = useContext(
@@ -46,6 +42,18 @@ export default async function CreateNewContent({ params }: PROPS) {
   const { updateCreditUsage, setUpdateCreditUsage } = useContext(
     UpdateCreditUsageContext
   );
+
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      // Await the Promise for params and get the resolved value
+      const resolvedParams = await params;
+      const selectedTemplate = Templates?.find(
+        (item) => item.slug === resolvedParams["template-slug"]
+      );
+      setSelectedTemplate(selectedTemplate);
+    };
+    fetchTemplate();
+  }, [params]);
 
   const GenerateAIContent = async (FormData: any) => {
     if (totalUsage >= 10000 && !userSubscription) {
