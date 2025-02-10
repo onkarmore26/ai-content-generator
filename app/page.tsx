@@ -2,6 +2,7 @@
 import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ChevronRight,
   FileText,
@@ -60,19 +61,19 @@ function LandingPageContent() {
       name: "John Doe",
       feedback:
         "This app revolutionized how I create content. It's fast, easy, and delivers amazing results!",
-      avatar: "/images/avatar1.jpg",
+      avatar: "/team-lg-1.jpg", // Corrected path
     },
     {
       name: "Jane Smith",
       feedback:
         "The templates are fantastic, and the customization options are exactly what I needed.",
-      avatar: "/images/avatar2.jpg",
+      avatar: "/team-lg-3.jpg",
     },
     {
       name: "Carlos Martinez",
       feedback:
         "I can't imagine going back to manual content creation after using this tool.",
-      avatar: "/images/avatar3.jpg",
+      avatar: "/team-lg-7.jpg",
     },
   ];
 
@@ -121,17 +122,19 @@ function LandingPageContent() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+              className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center text-center"
             >
-              <img
+              <Image
                 src={testimonial.avatar}
                 alt={testimonial.name}
-                className="w-16 h-16 rounded-full mx-auto mb-4"
+                width={120} // Increased size
+                height={120} // Increased size
+                className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
               />
-              <p className="italic text-gray-600 mb-4">
+              <p className="italic text-gray-600 mb-4 text-lg">
                 "{testimonial.feedback}"
               </p>
-              <h4 className="font-semibold text-lg">- {testimonial.name}</h4>
+              <h4 className="font-semibold text-xl">{testimonial.name}</h4>
             </div>
           ))}
         </div>
